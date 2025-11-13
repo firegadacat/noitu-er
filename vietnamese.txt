@@ -34956,9 +34956,6 @@ ra đô
 ra đời
 ra gì
 ra giêng
-ra glai
-ra glăng
-ra glây
 ra gu
 ra gu
 ra hè
@@ -53748,3 +53745,5 @@ yếu thanh
 yếu xiều
 ủi quần
 quẹo vào
+phèo phổi
+chấu lúa
