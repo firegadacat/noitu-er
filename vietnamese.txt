@@ -265,7 +265,6 @@ an đồng
 an đức
 an giang
 an giấc
-an gin
 an hà
 an hải
 an hảo
@@ -53309,19 +53308,13 @@ tiện thổ
 tiên ưu
 hậu lạc
 tiền xanh
-tiếng albani
 tiếng anh
-tiếng armenia
-tiếng bulgari
 tiếng bung
-tiếng bungari
 tiếng đức
 tiếng hàn
 tiếng hán
 tiếng hoa
-tiếng khmer
 tiếng kình
-tiếng malaysia
 tiếng mỹ
 tiếng nga
 tiếng nhật
@@ -53333,7 +53326,6 @@ tiếng trịnh
 tiếng trung
 tiếng việt
 tiếng Ý
-tiếng yiddish
 tiếp dư
 tiệp dư
 tiếp lỵ
@@ -53745,5 +53737,6 @@ yếu thanh
 yếu xiều
 ủi quần
 quẹo vào
-phèo phổi
+phèo lợn
 chấu lúa
+ngoáy tai
