@@ -1,0 +1,314 @@
+/* maynoitu.css — extracted and beautified from Maynoitu.html
+   - Light/Dark theme variables
+   - Element-specific variables for smooth theme transitions
+   - Button gradient animations
+   - Kept original design, only formatting improved for readability
+*/
+
+:root {
+  /* Palette */
+  --bg-0: #071124;
+  --bg-1: #071426;
+  --glass: rgba(255,255,255,0.04);
+
+  --muted: #9aa4b2;
+  --accent: #38bdf8;
+  --accent-2: #7c3aed;
+  --danger: #f87171;
+  --ok: #10b981;
+
+  --card-blur: 8px;
+
+  /* Accessibility / UI */
+  --text: #e6eef6;
+  --muted-2: rgba(255,255,255,0.06);
+  --btn-bg: rgba(8,12,20,0.6);
+  --chip-bg: rgba(255,255,255,0.02);
+
+  /* Element-specific colors to allow smooth transitions */
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  --card-border: rgba(255,255,255,0.03);
+  --card-shadow: 0 6px 30px rgba(2,6,23,0.6);
+
+  --input-bg: rgba(255,255,255,0.02);
+  --input-border: rgba(255,255,255,0.06);
+
+  --console-bg: rgba(0,0,0,0.3);
+  --file-label-bg: rgba(255,255,255,0.02);
+}
+
+/* Light theme overrides: toggle by adding `light-theme` on <body> */
+body.light-theme {
+  --bg-0: #f7fafc;
+  --bg-1: #e6eef6;
+  --glass: rgba(2,6,23,0.03);
+
+  --muted: #475569;
+  --accent: #0ea5e9;
+  --accent-2: #6d28d9;
+  --danger: #ef4444;
+  --ok: #059669;
+
+  --card-blur: 6px;
+  --text: #061226;
+  --muted-2: rgba(0,0,0,0.06);
+  --btn-bg: rgba(255,255,255,0.9);
+  --chip-bg: rgba(0,0,0,0.03);
+
+  /* element-specific light overrides */
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.96));
+  --card-border: rgba(2,6,23,0.06);
+  --card-shadow: 0 6px 18px rgba(2,6,23,0.06);
+
+  --input-bg: rgba(0,0,0,0.03);
+  --input-border: rgba(0,0,0,0.08);
+
+  --console-bg: rgba(255,255,255,0.6);
+  --file-label-bg: rgba(255,255,255,0.95);
+}
+
+/* Base layout */
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+body {
+  background: linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
+  color: var(--text);
+  padding: 20px;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 240ms ease, color 240ms ease, background-image 240ms ease;
+}
+
+.wrap { max-width: 980px; margin: 0 auto; }
+
+.header { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+
+.logo .dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+h1 { font-size: 18px; margin: 0; color: var(--accent); }
+
+/* Card */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(var(--card-blur));
+  transition: background 340ms ease, border-color 340ms ease, box-shadow 340ms ease;
+}
+
+/* Row / controls */
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.input,
+.btn,
+.file-label {
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  transition: background 260ms ease, border-color 260ms ease, color 260ms ease;
+}
+
+.input {
+  flex: 1;
+  min-width: 160px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgba(56,189,248,0.25);
+  box-shadow: 0 6px 18px rgba(56,189,248,0.06);
+}
+
+/* Buttons */
+.btn {
+  background: var(--btn, rgba(8,12,20,0.6));
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+}
+
+.btn:active { transform: translateY(1px); }
+.btn:focus { outline: 3px solid rgba(0,0,0,0.08); outline-offset: 2px; }
+
+.btn.primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background-size: 200% 200%;
+  animation: gradient-move-primary 6s linear infinite;
+  box-shadow: 0 8px 24px rgba(56,189,248,0.12);
+}
+
+.btn.ghost { background: transparent; border: 1px dashed rgba(255,255,255,0.04); }
+
+.btn.danger {
+  background: linear-gradient(90deg, var(--danger), #fb7185);
+  background-size: 200% 200%;
+  animation: gradient-move-danger 5.5s linear infinite;
+  box-shadow: 0 8px 24px rgba(248,113,113,0.08);
+}
+
+/* subtle hover speed-up for animated gradients */
+.btn.primary:hover { animation-duration: 3.6s; }
+.btn.danger:hover { animation-duration: 3.2s; }
+
+.small { font-size: 13px; color: var(--muted); }
+
+/* Console */
+#console {
+  white-space: pre-wrap;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--console-bg);
+  min-height: 80px;
+  color: var(--muted);
+  overflow: auto;
+}
+
+#status { font-size: 13px; color: var(--muted); margin-top: 8px; display: flex; gap: 8px; align-items: center; }
+
+#blacklist {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--danger);
+  white-space: pre-wrap;
+  max-height: 140px;
+  overflow: auto;
+}
+
+.flash { animation: flash 0.36s; }
+@keyframes flash { from { background: rgba(56,189,248,0.18); } to { background: transparent; } }
+
+.file-label {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  border: 1px dashed var(--input-border);
+  background: var(--file-label-bg);
+}
+
+.meta { display: flex; gap: 8px; align-items: center; }
+.left { display: flex; gap: 8px; align-items: center; }
+
+.badge {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--chip-bg);
+  font-size: 13px;
+  transition: background 260ms ease, color 260ms ease;
+}
+
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--chip-bg);
+  font-size: 13px;
+  transition: background 260ms ease, color 260ms ease;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255,255,255,0.06);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.footer { margin-top: 12px; font-size: 13px; color: var(--muted); }
+.export-link { color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+/* small helper to visually indicate theme state */
+.theme-indicator { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Gradient animations for buttons */
+@keyframes gradient-move-primary {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes gradient-move-danger {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Social buttons (small icon buttons with tooltip) */
+.socials {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.social-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: transform 160ms ease, background 220ms ease, border-color 220ms ease;
+  position: relative;
+  font-size: 15px;
+}
+
+.social-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.05); }
+
+/* Tooltip using data-tooltip attribute */
+.social-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+  z-index: 60;
+}
+
+/* Tooltip style for light theme (when body.light-theme) */
+body.light-theme .social-btn[data-tooltip]:hover::after {
+  background: rgba(2,6,23,0.9);
+  color: var(--text);
+}
+
+/* brand logo styling */
+.brand-logo { margin-left: 8px; border-radius: 6px; }
+
+.social-icon { display: block; width: 18px; height: 18px; }

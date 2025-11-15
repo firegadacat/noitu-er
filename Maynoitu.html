@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="maynoitu.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="dot">NT</div>
+      <!-- placeholder inline SVG logo: replace src or SVG as desired -->
+      <svg class="brand-logo" width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#g)" />
+        <defs>
+          <linearGradient id="g" x1="0" x2="1">
+            <stop offset="0" stop-color="#38bdf8" />
+            <stop offset="1" stop-color="#7c3aed" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div>
+        <h1>Máy nối từ — NoiTu Web (v2)</h1>
+        <div class="small">Blacklist nguyên cặp · cải tiến hiệu năng, lưu local, export/import</div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="meta controls-left" style="display:flex;gap:8px;align-items:center">
+        <div id="loadSpinner" style="display:none" class="spinner"></div>
+        <div class="badge small" id="source">Nguồn: chưa tải</div>
+        <div class="badge small" id="count">0 cặp</div>
+      </div>
+      <div class="socials" style="margin-left:12px">
+          <a id="discordBtn" class="social-btn" href="https://discord.gg/db9wKhJgqS" data-tooltip="Join Discord Server" title="Discord (open)" target="_blank" rel="noopener" aria-label="Discord">
+            <img class="social-icon" src="https://www.svgrepo.com/show/353655/discord-icon.svg" alt="Discord">
+          </a>
+          <a id="fbBtn" class="social-btn" href="https://www.facebook.com/fgsbta" data-tooltip="Firega Sebastian" title="Facebook (open)" target="_blank" rel="noopener" aria-label="Facebook">
+            <img class="social-icon" src="https://upload.wikimedia.org/wikipedia/commons/b/b9/2023_Facebook_icon.svg" alt="Facebook">
+          </a>
+        <a id="ghBtn" class="social-btn" href="https://github.com/firegadacat" data-tooltip="firegadacat" title="GitHub (open)">🐙</a>
+        <a id="arkBtn" class="social-btn" href="" data-tooltip="Firega#4352" title="Arknights (open)">🎮</a>
+      </div>
+      <button id="themeBtn" class="btn" title="Chuyển giao diện" style="margin-left:auto">🌙</button>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="row">
+      <label class="file-label">
+        📂 Chọn file (.txt)
+        <input id="fileInput" type="file" accept=".txt" style="display:none">
+      </label>
+      <button id="fetchBtn" class="btn ghost">🔗 Nạp GitHub mặc định</button>
+      <button id="retryBtn" class="btn ghost" style="display:none">🔁 Thử lại tải</button>
+      <div class="left small" style="margin-left:6px">Hoặc dán link .txt: <input id="urlInput" class="input" placeholder="https://..." style="width:320px"></div>
+    </div>
+
+    <div class="row">
+      <input id="wordInput" class="input" placeholder="Nhập từ (Enter để chạy)..." autocomplete="off">
+      <button id="runBtn" class="btn primary">Tìm từ</button>
+      <button id="autoBtn" class="btn">🔁 Auto (tắt)</button>
+      <button id="blacklistBtn" class="btn danger">Blacklist</button>
+    </div>
+
+    <div class="row">
+      <div style="flex:1">
+        <div id="console">Sẵn sàng. Tải dữ liệu hoặc chọn file để bắt đầu.</div>
+      </div>
+      <div style="width:260px">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button id="resetBtn" class="btn">🔄 Reset</button>
+          <button id="exportBtn" class="btn">⬇ Export blacklist</button>
+          <button id="importBtn" class="btn">⬆ Import</button>
+        </div>
+        <div id="blacklist" class="small"><strong>Blacklist:</strong> (chưa có)</div>
+      </div>
+    </div>
+
+    <div id="status" class="small"> </div>
+  </div>
+
+  <div class="footer">Ghi chú: Kết quả sẽ được copy vào clipboard. Blacklist lưu ở <code>localStorage</code>. Muốn tôi chỉnh thêm UI/UX nữa thì nói.</div>
+</div>
+
+<script>
+(() => {
+  // =========== Config ==========
+  const DEFAULT_URL = "https://raw.githubusercontent.com/firegadacat/noitu-er/refs/heads/main/vietnamese.txt";
+  const LS_BLACKLIST = 'noitu_blacklist_v2';
+  const LS_PAIRS_RAW = 'noitu_pairs_raw_v2';
+  const LS_THEME = 'noitu_theme_v2'; // 'light' | 'dark'
+
+  // =========== Elements ==========
+  const fileInput = document.getElementById('fileInput');
+  const fetchBtn = document.getElementById('fetchBtn');
+  const retryBtn = document.getElementById('retryBtn');
+  const urlInput = document.getElementById('urlInput');
+
+  const wordInput = document.getElementById('wordInput');
+  const runBtn = document.getElementById('runBtn');
+  const autoBtn = document.getElementById('autoBtn');
+  const blacklistBtn = document.getElementById('blacklistBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const themeBtn = document.getElementById('themeBtn');
+  const consoleEl = document.getElementById('console');
+  const sourceEl = document.getElementById('source');
+  const countEl = document.getElementById('count');
+  const blacklistEl = document.getElementById('blacklist');
+  const loadSpinner = document.getElementById('loadSpinner');
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+
+  // =========== State ==========
+  let rawText = '';
+  let pairs = [];            // array of [a,b]
+  let originalPairs = [];    // backup
+  let index = new Map();     // word -> array of pairs
+  let blacklist = loadFromLS(LS_BLACKLIST) || [];
+  let autoMode = false;
+  let currentSourceName = 'chưa tải';
+  let theme = null; // 'light' | 'dark'
+
+  // =========== Helpers ==========
+  function log(msg){ consoleEl.textContent = msg; consoleEl.scrollTop = consoleEl.scrollHeight; }
+
+  function setLoading(on){ loadSpinner.style.display = on? 'inline-block' : 'none'; }
+
+  function saveBlacklist(){ try{ localStorage.setItem(LS_BLACKLIST, JSON.stringify(blacklist)); }catch(e){} }
+  function saveRawPairs(){ try{ localStorage.setItem(LS_PAIRS_RAW, rawText); }catch(e){} }
+  function loadFromLS(k){ try{ const s = localStorage.getItem(k); return s? JSON.parse(s): null;}catch(e){return null} }
+
+  // Theme helpers
+  function saveTheme(t){ try{ localStorage.setItem(LS_THEME, JSON.stringify(t)); }catch(e){} }
+  function applyTheme(t){
+    theme = t;
+    if(t==='light') document.body.classList.add('light-theme'); else document.body.classList.remove('light-theme');
+    updateThemeButton();
+  }
+  function updateThemeButton(){ if(!themeBtn) return; themeBtn.textContent = theme==='light' ? '🌞' : '🌙'; themeBtn.title = theme==='light' ? 'Chuyển sang tối' : 'Chuyển sang sáng'; }
+  function toggleTheme(){ const next = theme==='light' ? 'dark' : 'light'; applyTheme(next); saveTheme(next); }
+
+  function parseWords(text){
+    const arr = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
+    const result = [];
+    for(const line of arr){
+      // split into first two tokens (original behavior)
+      const parts = line.split(/\s+/,2);
+      const f = parts[0]?parts[0].toLowerCase():null;
+      const s = parts[1]?parts[1].toLowerCase():null;
+      if(f && s) result.push([f,s]);
+    }
+    return result;
+  }
+
+  function buildIndex(){
+    index = new Map();
+    for(const p of pairs){
+      const k = p[0];
+      if(!index.has(k)) index.set(k, []);
+      index.get(k).push(p);
+    }
+  }
+
+  function updateStatus(){
+    sourceEl.textContent = `Nguồn: ${currentSourceName}`;
+    countEl.textContent = `${pairs.length} cặp`;
+    updateBlacklistDisplay();
+  }
+
+  function updateBlacklistDisplay(){
+    if(blacklist.length===0) {
+      blacklistEl.innerHTML = '<strong>Blacklist:</strong> (chưa có)';
+    }else{
+      blacklistEl.innerHTML = '<strong>Blacklist:</strong> ' + blacklist.map(p=>`<span class="chip">${escapeHtml(p[0])} ${escapeHtml(p[1])}</span>`).join(' ');
+    }
+  }
+
+  function findMatches(prefix){
+    if(!prefix) return [];
+    const arr = index.get(prefix) || [];
+    // filter blacklist
+    return arr.filter(m => !blacklist.some(b=>b[0]===m[0] && b[1]===m[1]));
+  }
+
+  function findEndWords(prefix){
+    const matches = findMatches(prefix);
+    return matches.filter(m => (index.get(m[1])||[]).filter(x => !blacklist.some(b=>b[0]===x[0]&&b[1]===x[1])).length===0 );
+  }
+
+  function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  async function tryCopy(text){
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(text);
+        return true;
+      }else{
+        const ta = document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select();
+        const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
+      }
+    }catch(e){ return false; }
+  }
+
+  function singleRun(inp){
+    if(!inp) return null;
+    const lower = inp.toLowerCase().trim();
+    let endWords = findEndWords(lower);
+    let chosen;
+    if(endWords.length) chosen = randomChoice(endWords);
+    else{
+      const matches = findMatches(lower);
+      if(!matches.length) return null;
+      chosen = randomChoice(matches);
+    }
+    // remove chosen from both pairs and index (destructive)
+    pairs = pairs.filter(p => !(p[0]===chosen[0] && p[1]===chosen[1]));
+    buildIndex(); // cheaper than filtering index structures incorrectly
+    updateStatus();
+    return chosen;
+  }
+
+  async function runOnce(){
+    const inp = wordInput.value.trim().toLowerCase();
+    if(!inp){ log('⚠️ Vui lòng nhập từ.'); return; }
+    const chosen = singleRun(inp);
+    if(!chosen){ log(`Không tìm thấy từ nào bắt đầu bằng "${inp}".`); return; }
+    const result = `${chosen[0]} ${chosen[1]}`;
+    const remaining = findMatches(chosen[1]).length;
+    let msg = `Kết quả: ${result}\nCó ${remaining} từ khác bắt đầu bằng chữ này`;
+    if(remaining===0) msg += '\nĐã bị ngắt';
+    await tryCopy(result);
+    msg += '\n(Đã copy vào clipboard)';
+    log(msg);
+    wordInput.dataset.lastResultPair = result;
+    flash(consoleEl);
+  }
+
+  async function runAuto(){
+    const start = wordInput.value.trim().toLowerCase();
+    if(!start){ log('⚠️ Vui lòng nhập từ.'); return; }
+    autoBtn.disabled = true; autoBtn.textContent = '🔁 Auto (đang chạy)';
+    let chain=[]; let cur = start;
+    while(true){
+      const chosen = singleRun(cur);
+      if(!chosen) break;
+      chain.push(`${chosen[0]} ${chosen[1]}`);
+      cur = chosen[1];
+      // micro-yield to keep UI responsive
+      await new Promise(r => setTimeout(r, 0));
+    }
+    autoBtn.disabled = false; autoBtn.textContent = '🔁 Auto (tắt)';
+    if(!chain.length){ log(`Không thể nối từ "${start}".`); return; }
+    await tryCopy(chain[chain.length-1]);
+    log(chain.join(' → ') + '\n(Đã copy từ cuối)');
+    flash(consoleEl);
+  }
+
+  function flash(el){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+
+  function escapeHtml(s){ return s.replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]); }
+
+  // =========== Bindings ==========
+  runBtn.addEventListener('click', async ()=>{ if(autoMode) await runAuto(); else await runOnce(); });
+  wordInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); runBtn.click(); } });
+
+  autoBtn.addEventListener('click', ()=>{ autoMode = !autoMode; autoBtn.textContent = autoMode ? '🔁 Auto (bật)' : '🔁 Auto (tắt)'; });
+
+  // theme button
+  if(themeBtn) themeBtn.addEventListener('click', ()=>{ toggleTheme(); });
+
+  blacklistBtn.addEventListener('click', ()=>{
+    const last = wordInput.dataset.lastResultPair;
+    if(last){
+      const parts = last.split(/\s+/,2);
+      const pair = [parts[0], parts[1]];
+      if(!blacklist.some(b=>b[0]===pair[0] && b[1]===pair[1])){
+        blacklist.push(pair);
+        saveBlacklist();
+        updateBlacklistDisplay();
+        log(`⚠️ Cặp "${pair[0]} ${pair[1]}" đã được thêm vào blacklist.`);
+      }
+    }else{
+      log('Chưa có kết quả để blacklist.');
+    }
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    pairs = originalPairs.slice();
+    buildIndex();
+    blacklist = [];
+    saveBlacklist();
+    updateStatus();
+    log('🔄 Đã reset danh sách và blacklist.');
+  });
+
+  fileInput.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(f) loadFromFileObject(f); });
+
+  fetchBtn.addEventListener('click', ()=>{ loadFromURL(DEFAULT_URL); });
+  retryBtn.addEventListener('click', ()=>{ loadFromURL(DEFAULT_URL); });
+
+  exportBtn.addEventListener('click', ()=>{
+    const data = JSON.stringify(blacklist, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'noitu_blacklist.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  importBtn.addEventListener('click', ()=>{
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange = e => {
+      const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => {
+        try{
+          const arr = JSON.parse(ev.target.result);
+          if(Array.isArray(arr)){
+            blacklist = arr.filter(x=>Array.isArray(x) && x.length>=2).map(x=>[String(x[0]), String(x[1])]);
+            saveBlacklist(); updateBlacklistDisplay(); log('✅ Đã import blacklist.');
+          }else log('❌ File import không đúng định dạng.');
+        }catch(err){ log('❌ Lỗi khi parse file import.'); }
+      }; r.readAsText(f);
+    }; inp.click();
+  });
+
+  // =========== File / URL loaders ==========
+  function loadFromFileObject(file){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      rawText = e.target.result;
+      pairs = parseWords(rawText);
+      originalPairs = pairs.slice();
+      buildIndex();
+      currentSourceName = file.name;
+      saveRawPairs();
+      updateStatus();
+      log(`📂 Đã tải ${pairs.length} cặp từ file "${file.name}".`);
+    };
+    reader.onerror = ()=> log('❌ Lỗi đọc file. Thử lại.');
+    reader.readAsText(file,'utf-8');
+  }
+
+  async function loadFromURL(url){
+    try{
+      setLoading(true); log('⏳ Đang tải dữ liệu...'); retryBtn.style.display='none';
+      const r = await fetch(url, {cache: 'no-store'});
+      if(!r.ok) throw new Error('fetch failed ' + r.status);
+      rawText = await r.text();
+      pairs = parseWords(rawText);
+      originalPairs = pairs.slice(); buildIndex();
+      currentSourceName = url;
+      saveRawPairs(); updateStatus();
+      log(`✅ Đã tải ${pairs.length} cặp từ URL.`);
+      setLoading(false);
+    }catch(err){
+      console.error(err);
+      setLoading(false);
+      retryBtn.style.display='inline-block';
+      log('❌ Không thể tải từ URL. Kiểm tra kết nối hoặc dán link khác.');
+      sourceEl.textContent = 'Lỗi tải';
+    }
+  }
+
+  // =========== Init: load LS raw or default ==========
+  (function init(){
+    try{
+      const savedRaw = loadFromLS(LS_PAIRS_RAW);
+      if(savedRaw){ rawText = savedRaw; pairs = parseWords(rawText); originalPairs = pairs.slice(); buildIndex(); currentSourceName = 'localStorage'; log(`📥 Dữ liệu từ localStorage — ${pairs.length} cặp`); }
+      // init theme: check saved, then prefers-color-scheme, default dark
+      try{
+        const savedTheme = (function(){ try{ const s = localStorage.getItem(LS_THEME); return s?JSON.parse(s):null }catch(e){return null} })();
+        if(savedTheme==='light' || savedTheme==='dark') applyTheme(savedTheme);
+        else{
+          const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+          applyTheme(prefersLight ? 'light' : 'dark');
+        }
+      }catch(e){}
+      updateStatus();
+    }catch(e){}
+  })();
+
+  // simple utility: if user pastes a link into urlInput and press Enter -> load
+  urlInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); const u = urlInput.value.trim(); if(u) loadFromURL(u); } });
+
+  // expose small debug for console
+  window._noitu = { pairs, blacklist };
+
+})();
+</script>
+</body>
+</html>
