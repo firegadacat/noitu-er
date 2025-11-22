@@ -83,7 +83,7 @@ body {
   transition: background-color 240ms ease, color 240ms ease, background-image 240ms ease;
 }
 
-.wrap { max-width: 980px; margin: 0 auto; }
+.wrap { max-width: 1100px; margin: 0 auto; }
 
 .header { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
 .logo { display: flex; align-items: center; gap: 10px; }
@@ -105,11 +105,12 @@ h1 { font-size: 18px; margin: 0; color: var(--accent); }
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  padding: 14px;
+  padding: 16px 18px;
   border-radius: 14px;
   box-shadow: var(--card-shadow);
   backdrop-filter: blur(var(--card-blur));
   transition: background 340ms ease, border-color 340ms ease, box-shadow 340ms ease;
+  overflow: visible;
 }
 
 /* Row / controls */
@@ -192,7 +193,7 @@ h1 { font-size: 18px; margin: 0; color: var(--accent); }
 #status { font-size: 13px; color: var(--muted); margin-top: 8px; display: flex; gap: 8px; align-items: center; }
 
 #blacklist {
-  margin-top: 12px;
+  margin-top: -40px;
   font-size: 14px;
   color: var(--danger);
   white-space: pre-wrap;
@@ -312,3 +313,21 @@ body.light-theme .social-btn[data-tooltip]:hover::after {
 .brand-logo { margin-left: 8px; border-radius: 6px; }
 
 .social-icon { display: block; width: 18px; height: 18px; }
+
+/* Right-side small controls adjustments */
+.card .side { /* fallback width if not set inline */
+  width: 340px;
+}
+.card .side .side-controls { justify-content: flex-end; flex-wrap: wrap; }
+.card .side .btn {
+  padding: 8px 10px;
+  font-size: 14px;
+  min-width: 44px;
+}
+
+@media (max-width: 780px) {
+  .wrap { padding: 12px; }
+  .card { padding: 12px; }
+  .card .side { width: 100%; }
+  .card .side .side-controls { justify-content: flex-start; }
+}
