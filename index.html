@@ -68,9 +68,10 @@
       <div style="flex:1">
         <div id="console">Sẵn sàng. Tải dữ liệu hoặc chọn file để bắt đầu.</div>
       </div>
-      <div style="width:260px">
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button id="resetBtn" class="btn">🔄 Reset</button>
+      <div class="side" style="width:340px">
+        <div class="side-controls" style="display:flex;gap:8px;margin-bottom:8px">
+          <button id="resetWordsBtn" class="btn">🔄 Reset danh sách</button>
+          <button id="resetBlacklistBtn" class="btn">🗑️ Reset blacklist</button>
           <button id="exportBtn" class="btn">⬇ Export blacklist</button>
           <button id="importBtn" class="btn">⬆ Import</button>
         </div>
@@ -102,7 +103,8 @@
   const runBtn = document.getElementById('runBtn');
   const autoBtn = document.getElementById('autoBtn');
   const blacklistBtn = document.getElementById('blacklistBtn');
-  const resetBtn = document.getElementById('resetBtn');
+  const resetWordsBtn = document.getElementById('resetWordsBtn');
+  const resetBlacklistBtn = document.getElementById('resetBlacklistBtn');
   const themeBtn = document.getElementById('themeBtn');
   const consoleEl = document.getElementById('console');
   const sourceEl = document.getElementById('source');
@@ -286,13 +288,18 @@
     }
   });
 
-  resetBtn.addEventListener('click', ()=>{
+  if(resetWordsBtn) resetWordsBtn.addEventListener('click', ()=>{
     pairs = originalPairs.slice();
     buildIndex();
+    updateStatus();
+    log('🔄 Đã reset danh sách từ (không xóa blacklist).');
+  });
+
+  if(resetBlacklistBtn) resetBlacklistBtn.addEventListener('click', ()=>{
     blacklist = [];
     saveBlacklist();
     updateStatus();
-    log('🔄 Đã reset danh sách và blacklist.');
+    log('🗑️ Đã reset blacklist.');
   });
 
   fileInput.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(f) loadFromFileObject(f); });
@@ -386,5 +393,4 @@
 })();
 </script>
 </body>
-
 </html>
